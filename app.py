@@ -1,3 +1,13 @@
+import sys
+import subprocess
+
+try:
+    import cv2
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y", "opencv-python", "opencv-python-headless"])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "opencv-python-headless"])
+    import cv2
+
 import streamlit as st
 from ultralytics import YOLO
 from PIL import Image
