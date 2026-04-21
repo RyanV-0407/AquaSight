@@ -27,7 +27,7 @@ AquaSight is powered by **YOLOv8** and trained on the **Fish Detection v5** data
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/yourusername/AquaSight.git
+   git clone https://github.com/RyanV-0407/AquaSight.git
    cd AquaSight
    ```
 
