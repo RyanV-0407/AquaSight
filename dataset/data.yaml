@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 13
+names: ['AngelFish', 'BlueTang', 'ButterflyFish', 'ClownFish', 'GoldFish', 'Gourami', 'MorishIdol', 'PlatyFish', 'RibbonedSweetlips', 'ThreeStripedDamselfish', 'YellowCichlid', 'YellowTang', 'ZebraFish']
+
+roboflow:
+  workspace: zehra-acer
+  project: fish-detection-fztlb
+  version: 5
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/zehra-acer/fish-detection-fztlb/dataset/5

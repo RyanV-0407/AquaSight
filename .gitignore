@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.env
+.streamlit/
+runs/detect/fish_project_v2/train_batch*.jpg
+runs/detect/fish_project_v2/val_batch*.jpg
+runs/detect/fish_project_v2/labels.jpg
+# We will keep the curves and results for the model page
