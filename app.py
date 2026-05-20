@@ -422,6 +422,15 @@ if uploaded_file:
         <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 1rem; padding-left: 0.5rem;">Live Detection Stream</div>
         </div>
         ''', unsafe_allow_html=True)
+        st.markdown('''
+        <style>
+            [data-testid="stImage"] {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+        </style>
+        ''', unsafe_allow_html=True)
         
         col_vid, col_log = st.columns([1.2, 1], gap="medium")
         with col_vid:
