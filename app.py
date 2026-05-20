@@ -423,7 +423,7 @@ if uploaded_file:
         </div>
         ''', unsafe_allow_html=True)
         
-        col_vid, col_log = st.columns([1.5, 1], gap="large")
+        col_vid, col_log = st.columns([1.2, 1], gap="medium")
         with col_vid:
             stframe = st.empty()
         with col_log:
@@ -463,7 +463,7 @@ if uploaded_file:
                 new_w = int(w * scale)
                 plotted_rgb = cv2.resize(plotted_rgb, (new_w, max_height))
                 
-            stframe.image(plotted_rgb, channels="RGB", use_container_width=False)
+            stframe.image(plotted_rgb, channels="RGB", use_container_width=True)
             
             current_time = time.time()
             if needs_log_update or (current_time - last_log_update > 0.5):
@@ -497,7 +497,7 @@ if uploaded_file:
                     timeline_html = '<div style="color: var(--text-muted); font-size: 0.8rem; padding: 1rem 0;">Awaiting entities...</div>'
 
                 timeline_ph.markdown(f'''
-                <div class="bento-card" style="height: 100%; min-height: 400px;">
+                <div class="bento-card" style="height: 450px; overflow-y: auto;">
                 <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 1rem;">Live Classification Log</div>
                 {timeline_html}
                 </div>
