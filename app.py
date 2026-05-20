@@ -6,6 +6,8 @@ import time
 import io
 import base64
 import streamlit.components.v1 as components
+import cv2
+import tempfile
 
 # ─────────────────────────────────────────────
 # PAGE CONFIG
@@ -393,10 +395,70 @@ with st.expander("⚙️ Inference Controls"):
         heatmap_mode = st.toggle("Enable Heatmap Mode", value=False)
 
 # File Uploader
-uploaded_file = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"], label_visibility="collapsed")
+uploaded_file = st.file_uploader("Upload Media", type=["jpg", "jpeg", "png", "mp4", "mov", "avi"], label_visibility="collapsed")
 
 # Top Metrics Row (Bento Grid)
 if uploaded_file:
+    file_ext = uploaded_file.name.split('.')[-1].lower()
+    is_video = file_ext in ['mp4', 'mov', 'avi']
+    
+    if is_video:
+        tfile = tempfile.NamedTemporaryFile(delete=False) 
+        tfile.write(uploaded_file.read())
+        
+        scan_ph = st.empty()
+        scan_ph.markdown("""
+        <div class="bento-card scan-container" style="height: 400px; display: flex; align-items: center; justify-content: center;">
+          <div class="scan-beam"></div>
+          <div style="font-family: 'Instrument Sans'; color: var(--text-muted); font-size: 0.9rem; z-index: 20;">Initializing Video Stream Neural Pathways...</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        cap = cv2.VideoCapture(tfile.name)
+        stop_btn = st.button("Stop Video Processing", key="stop_vid")
+        
+        st.markdown(f'''
+        <div class="bento-card" style="padding: 1rem; margin-bottom: 24px;">
+        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 1rem; padding-left: 0.5rem;">Live Detection Stream</div>
+        </div>
+        ''', unsafe_allow_html=True)
+        
+        stframe = st.empty()
+        scan_ph.empty()
+        
+        global_classes = set()
+        t0 = time.time()
+        
+        while cap.isOpened() and not stop_btn:
+            ret, frame = cap.read()
+            if not ret:
+                break
+                
+            results = model.predict(frame, conf=conf_threshold, verbose=False)
+            res = results[0]
+            plotted = res.plot()
+            plotted_rgb = cv2.cvtColor(plotted, cv2.COLOR_BGR2RGB)
+            
+            for b in res.boxes:
+                cls_id = int(b.cls[0])
+                global_classes.add(model.names[cls_id])
+                num_boxes += 1
+                
+            stframe.image(plotted_rgb, channels="RGB", use_container_width=True)
+            
+        infer_ms = int((time.time() - t0) * 1000)
+        cap.release()
+        
+        st.markdown(f'''
+        <div class="bento-card" style="height: auto;">
+        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 1rem;">Video Classification Log</div>
+        <div style="color: var(--text-main); font-size: 0.9rem; line-height: 1.6;">Entities localized over stream: <br/> <span style="color: var(--accent); font-weight: 600;">{', '.join(list(global_classes)) if global_classes else 'None'}</span></div>
+        </div>
+        ''', unsafe_allow_html=True)
+        
+        render_footer(latency=infer_ms, load=num_boxes)
+        st.stop()
+
     image = Image.open(uploaded_file).convert("RGB")
     img_np = np.array(image)
     
