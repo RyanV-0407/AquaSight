@@ -422,20 +422,7 @@ if uploaded_file:
         <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 1rem; padding-left: 0.5rem;">Live Detection Stream</div>
         </div>
         ''', unsafe_allow_html=True)
-        # Determine aspect ratio from first frame for dynamic layout spacing
-        ret, frame = cap.read()
-        if not ret:
-            st.error("Failed to initialize video.")
-            st.stop()
-        h, w = frame.shape[:2]
-        vid_aspect = w / h
-        cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-        
-        # Use a dynamic spacer column to push vertical videos right against the log box
-        if vid_aspect < 1.0:
-            col_spacer, col_vid, col_log = st.columns([1, vid_aspect * 1.5, 1.2], gap="small")
-        else:
-            col_spacer, col_vid, col_log = st.columns([0.1, vid_aspect, 1.2], gap="small")
+        col_vid, col_log = st.columns([1, 1], gap="small")
             
         with col_vid:
             stframe = st.empty()
@@ -475,7 +462,14 @@ if uploaded_file:
                 scale = max_height / h
                 new_w = int(w * scale)
                 plotted_rgb = cv2.resize(plotted_rgb, (new_w, max_height))
-            stframe.image(plotted_rgb, channels="RGB", use_container_width=False)
+                
+            _, buffer = cv2.imencode('.jpg', cv2.cvtColor(plotted_rgb, cv2.COLOR_RGB2BGR))
+            b64_img = base64.b64encode(buffer).decode()
+            stframe.markdown(f'''
+            <div class="bento-card" style="height: 450px; display: flex; justify-content: center; align-items: center; padding: 0; overflow: hidden; background: #000;">
+                <img src="data:image/jpeg;base64,{b64_img}" style="max-height: 100%; max-width: 100%; object-fit: contain; border-radius: 12px;" />
+            </div>
+            ''', unsafe_allow_html=True)
             
             current_time = time.time()
             if needs_log_update or (current_time - last_log_update > 0.5):
