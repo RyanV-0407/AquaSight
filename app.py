@@ -428,7 +428,7 @@ if uploaded_file:
             stframe = st.empty()
         scan_ph.empty()
         
-        global_classes = set()
+        global_classes = {}
         t0 = time.time()
         
         while cap.isOpened() and not stop_btn:
@@ -443,7 +443,10 @@ if uploaded_file:
             
             for b in res.boxes:
                 cls_id = int(b.cls[0])
-                global_classes.add(model.names[cls_id])
+                conf = float(b.conf[0])
+                name = model.names[cls_id]
+                if name not in global_classes or conf > global_classes[name]:
+                    global_classes[name] = conf
                 num_boxes += 1
                 
             # Resize frame to prevent it from overwhelming the screen
@@ -459,12 +462,61 @@ if uploaded_file:
         infer_ms = int((time.time() - t0) * 1000)
         cap.release()
         
+        classes_vid = list(global_classes.keys())
+        confidences_vid = list(global_classes.values())
+        
+        timeline_html = '<div class="timeline">'
+        for i, (name, conf) in enumerate(zip(classes_vid, confidences_vid)):
+            if heatmap_mode:
+                if conf >= 0.75:
+                    bar_color = "#16a34a" # Green for high confidence
+                elif conf >= 0.50:
+                    bar_color = "#ca8a04" # Yellow for medium
+                else:
+                    bar_color = "#dc2626" # Red for low
+                shadow_col = f"{bar_color}80"
+            else:
+                bar_color = "var(--accent)"
+                shadow_col = "var(--accent-glow)"
+                
+            timeline_html += f'''
+<div class="timeline-item">
+<div style="font-size: 0.9rem; color: var(--text-main); font-weight: 500;">{name}</div>
+<div style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+<span style="width: 100px;">CONFIDENCE: {conf:.0%}</span>
+<div style="flex: 1; max-width: 120px; height: 3px; background: var(--surface); border-radius: 2px; overflow: hidden; border: 1px solid var(--border);">
+<div style="height: 100%; width: {conf*100}%; background: {bar_color}; box-shadow: 0 0 8px {shadow_col}; transition: background 0.3s ease;"></div>
+</div>
+</div>
+</div>
+'''
+        timeline_html += '</div>'
+        
+        if not classes_vid:
+            timeline_html = '<div style="color: var(--text-muted); font-size: 0.8rem; padding: 1rem 0;">No significant entities localized.</div>'
+
         st.markdown(f'''
         <div class="bento-card" style="height: auto;">
         <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 1rem;">Video Classification Log</div>
-        <div style="color: var(--text-main); font-size: 0.9rem; line-height: 1.6;">Entities localized over stream: <br/> <span style="color: var(--accent); font-weight: 600;">{', '.join(list(global_classes)) if global_classes else 'None'}</span></div>
+        {timeline_html}
         </div>
         ''', unsafe_allow_html=True)
+        
+        if len(classes_vid) > 0:
+            import pandas as pd
+            df = pd.DataFrame({
+                "ID": range(1, len(classes_vid)+1), 
+                "Species": classes_vid, 
+                "Max Confidence": [round(c, 4) for c in confidences_vid]
+            })
+            csv_b64 = base64.b64encode(df.to_csv(index=False).encode()).decode()
+            st.markdown(f'''
+<div style="margin-top: 16px; text-align: right;">
+<a href="data:file/csv;base64,{csv_b64}" download="aquasight_export_video.csv" style="display:inline-flex; align-items:center; gap:8px; padding:10px 18px; background:var(--text-main); color:var(--bg); text-decoration:none; font-family:'Instrument Sans', sans-serif; font-size:0.75rem; font-weight:500; border-radius:30px; box-shadow:0 4px 12px rgba(0,0,0,0.15); transition:transform 0.2s ease;">
+  ↓ Export Classification Matrix
+</a>
+</div>
+''', unsafe_allow_html=True)
         
         render_footer(latency=infer_ms, load=num_boxes)
         st.stop()
