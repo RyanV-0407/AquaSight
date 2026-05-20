@@ -423,7 +423,9 @@ if uploaded_file:
         </div>
         ''', unsafe_allow_html=True)
         
-        stframe = st.empty()
+        col1, col2, col3 = st.columns([1, 4, 1])
+        with col2:
+            stframe = st.empty()
         scan_ph.empty()
         
         global_classes = set()
@@ -444,7 +446,15 @@ if uploaded_file:
                 global_classes.add(model.names[cls_id])
                 num_boxes += 1
                 
-            stframe.image(plotted_rgb, channels="RGB", use_container_width=True)
+            # Resize frame to prevent it from overwhelming the screen
+            max_height = 450
+            h, w = plotted_rgb.shape[:2]
+            if h > max_height:
+                scale = max_height / h
+                new_w = int(w * scale)
+                plotted_rgb = cv2.resize(plotted_rgb, (new_w, max_height))
+                
+            stframe.image(plotted_rgb, channels="RGB", use_container_width=False)
             
         infer_ms = int((time.time() - t0) * 1000)
         cap.release()
