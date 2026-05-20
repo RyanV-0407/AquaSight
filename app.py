@@ -422,17 +422,21 @@ if uploaded_file:
         <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 1rem; padding-left: 0.5rem;">Live Detection Stream</div>
         </div>
         ''', unsafe_allow_html=True)
-        st.markdown('''
-        <style>
-            [data-testid="stImage"] {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            }
-        </style>
-        ''', unsafe_allow_html=True)
+        # Determine aspect ratio from first frame for dynamic layout spacing
+        ret, frame = cap.read()
+        if not ret:
+            st.error("Failed to initialize video.")
+            st.stop()
+        h, w = frame.shape[:2]
+        vid_aspect = w / h
+        cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
         
-        col_vid, col_log = st.columns([1.2, 1], gap="medium")
+        # Use a dynamic spacer column to push vertical videos right against the log box
+        if vid_aspect < 1.0:
+            col_spacer, col_vid, col_log = st.columns([1, vid_aspect * 1.5, 1.2], gap="small")
+        else:
+            col_spacer, col_vid, col_log = st.columns([0.1, vid_aspect, 1.2], gap="small")
+            
         with col_vid:
             stframe = st.empty()
         with col_log:
