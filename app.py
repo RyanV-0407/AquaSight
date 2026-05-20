@@ -462,8 +462,7 @@ if uploaded_file:
                 scale = max_height / h
                 new_w = int(w * scale)
                 plotted_rgb = cv2.resize(plotted_rgb, (new_w, max_height))
-                
-            stframe.image(plotted_rgb, channels="RGB", use_container_width=True)
+            stframe.image(plotted_rgb, channels="RGB", use_container_width=False)
             
             current_time = time.time()
             if needs_log_update or (current_time - last_log_update > 0.5):
