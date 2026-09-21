@@ -43,6 +43,6 @@ AquaSight is powered by **YOLOv8** and trained on the **Fish Detection v5** data
    ```
 
 ## 👨‍💻 Author
-Developed by **Vikram Singh**. Passionate about leveraging computer vision and neural networks for real-world environmental and analytical applications.
+Developed by **Vikram Singh Rathour**. Passionate about leveraging computer vision and neural networks for real-world environmental and analytical applications.
 
-*© 2026 AquaSight Studio.*
+*© 2026 Vikram Singh Rathour.*
